@@ -68,7 +68,13 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="nameInput" placeholder="Nhập tên">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">UID</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="uidInput" placeholder="Nhập UID">
@@ -85,12 +91,40 @@
         <div class="mt-4 text-center">
             <h2 id="result" class="alert alert-success d-inline-block"></h2>
         </div>
+        <!-- Bảng xếp hạng và nút sắp xếp -->
+        <div class="mt-4">
+            <div class="text-center mb-3">
+                <h2>Bảng xếp hạng</h2>
+                <button type="button" class="btn btn-info" onclick="sortTable()">Sắp xếp theo CV</button>
+            </div>
+            <table class="table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>Tên</th>
+                        <th>UID</th>
+                        <th>Tổng CV</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingTableBody">
+                </tbody>
+            </table>
+        </div>
+
+     
     </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function calculateCV() {
+            const name = document.getElementById('nameInput').value;
+            const uid = document.getElementById('uidInput').value;
+
+            if (!name || !uid) {
+                alert('Vui lòng nhập tên và UID.');
+                return;
+            }
+
             const items = [
                 { crit: parseInt(document.getElementById('shoeCrit').value) || 0, critDame: parseInt(document.getElementById('shoeCritDame').value) || 0 },
                 { crit: parseInt(document.getElementById('handCrit').value) || 0, critDame: parseInt(document.getElementById('handCritDame').value) || 0 },
@@ -99,15 +133,45 @@
                 { crit: parseInt(document.getElementById('ropeCrit').value) || 0, critDame: parseInt(document.getElementById('ropeCritDame').value) || 0 },
             ];
 
-            // Tính toán tổng CV dựa trên công thức CV = crit * 2 + critDame
+            // Calculate total CV using the formula CV = crit * 2 + critDame
             let totalCV = 0;
             items.forEach(item => {
                 totalCV += (item.crit * 2) + item.critDame;
             });
 
-            // Hiển thị kết quả
+            // Display the result
             document.getElementById('result').innerText = `Tổng CV: ${totalCV}`;
             document.getElementById('result').style.display = 'inline-block';
+
+            // Add to ranking table
+            addToRankingTable(name, uid, totalCV);
+        }
+
+        function addToRankingTable(name, uid, totalCV) {
+            const tableBody = document.getElementById('rankingTableBody');
+            const newRow = document.createElement('tr');
+
+            newRow.innerHTML = `
+                <td>${name}</td>
+                <td>${uid}</td>
+                <td>${totalCV}</td>
+            `;
+
+            tableBody.appendChild(newRow);
+        }
+
+        function sortTable() {
+            const tableBody = document.getElementById('rankingTableBody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const aText = parseInt(a.children[2].innerText);
+                const bText = parseInt(b.children[2].innerText);
+                return bText - aText; // Sort numerically for the CV column (highest to lowest)
+            });
+
+            tableBody.innerHTML = '';
+            rows.forEach(row => tableBody.appendChild(row));
         }
 
         function showUserInfo() {
